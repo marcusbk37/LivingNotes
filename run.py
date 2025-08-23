@@ -43,14 +43,14 @@ def main():
             print("Access the app at: http://localhost:5001")
             print("Press Ctrl+C to stop the server")
             print()
-            os.system("python app.py")
+            os.system(f"{sys.executable} app_with_composio.py")
             break
         elif choice == "2":
             print("\n🚀 Starting enhanced version...")
             print("Access the app at: http://localhost:5001")
             print("Press Ctrl+C to stop the server")
             print()
-            os.system("python app_with_composio.py")
+            os.system(f"{sys.executable} app_with_composio.py")
             break
         else:
             print("❌ Invalid choice. Please enter 1 or 2.")
