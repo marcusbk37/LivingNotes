@@ -183,6 +183,10 @@
             🎪 Make My Doc Funny!
         </button>
 
+        <button id="listDocsBtn" class="btn secondary" disabled>
+            📋 List My Google Docs
+        </button>
+
         <div id="preview" class="preview">
             <h4>Preview of Enhanced Content:</h4>
             <div id="previewContent" class="preview-content"></div>
@@ -214,6 +218,7 @@
             init() {
                 this.connectBtn = document.getElementById('connectBtn');
                 this.enhanceBtn = document.getElementById('enhanceBtn');
+                this.listDocsBtn = document.getElementById('listDocsBtn');
                 this.status = document.getElementById('status');
                 this.statusText = document.getElementById('statusText');
                 this.preview = document.getElementById('preview');
@@ -221,6 +226,7 @@
 
                 this.connectBtn.addEventListener('click', () => this.connectGoogleDocs());
                 this.enhanceBtn.addEventListener('click', () => this.enhanceDocument());
+                this.listDocsBtn.addEventListener('click', () => this.listDocuments());
 
                 this.updateStatus('disconnected', 'Ready to connect to Google Docs');
             }
@@ -288,6 +294,7 @@
                             this.updateStatus('connected', '✅ Connected to Google Docs!');
                             this.connectBtn.textContent = 'Connected';
                             this.enhanceBtn.disabled = false;
+                            this.listDocsBtn.disabled = false;
                             return;
                         }
                         
@@ -343,6 +350,54 @@
 
             showPreview(original, enhanced) {
                 this.previewContent.textContent = enhanced;
+                this.preview.style.display = 'block';
+            }
+
+            async listDocuments() {
+                try {
+                    this.showLoading('Fetching your Google Docs...');
+                    this.listDocsBtn.disabled = true;
+
+                    const response = await fetch('/api/list-docs', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.updateStatus('connected', `📋 Found ${result.count} Google Docs!`);
+                        this.showDocumentsList(result.documents);
+                    } else {
+                        throw new Error(result.error || 'Failed to list documents');
+                    }
+                } catch (error) {
+                    console.error('List documents error:', error);
+                    this.updateStatus('disconnected', `❌ Failed to list documents: ${error.message}`);
+                } finally {
+                    this.listDocsBtn.disabled = false;
+                }
+            }
+
+            showDocumentsList(documents) {
+                let content = '📋 Your Google Docs:\n\n';
+                
+                if (documents.length === 0) {
+                    content += 'No documents found.';
+                } else {
+                    documents.forEach((doc, index) => {
+                        content += `${index + 1}. ${doc.title}\n`;
+                        content += `   ID: ${doc.id}\n`;
+                        if (doc.modified) {
+                            content += `   Modified: ${new Date(doc.modified).toLocaleDateString()}\n`;
+                        }
+                        content += '\n';
+                    });
+                }
+                
+                this.previewContent.textContent = content;
                 this.preview.style.display = 'block';
             }
         }

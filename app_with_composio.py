@@ -311,6 +311,52 @@ def get_status():
         "current_doc": enhancer.current_doc
     })
 
+@app.route('/api/list-docs')
+def list_documents():
+    """List all Google Docs"""
+    try:
+        if not enhancer.is_connected:
+            return jsonify({"success": False, "error": "Not connected to Google Docs"}), 400
+        
+        print(f"📋 Listing documents for connection: {enhancer.connection_id}")
+        
+        # Use Composio SDK to list documents
+        result = composio_client.actions.execute(
+            action="google-docs_list_documents",
+            connection_id=enhancer.connection_id
+        )
+        
+        print(f"📋 Found {len(result) if result else 0} documents")
+        
+        if result:
+            # Format the documents for display
+            docs = []
+            for doc in result:
+                docs.append({
+                    "id": doc.get('id'),
+                    "title": doc.get('title', 'Untitled'),
+                    "created": doc.get('createdTime'),
+                    "modified": doc.get('modifiedTime'),
+                    "url": doc.get('webViewLink')
+                })
+            
+            return jsonify({
+                "success": True,
+                "documents": docs,
+                "count": len(docs)
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "documents": [],
+                "count": 0,
+                "message": "No documents found"
+            })
+            
+    except Exception as e:
+        print(f"❌ Error listing documents: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/test-composio')
 def test_composio():
     """Test Composio connection"""
