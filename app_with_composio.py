@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 import os
 from dotenv import load_dotenv
 
+# id: 1yUJU8veN_Ck-QXlNacp190Fg4vAxrC5t3xhQGBvPP80
+
 # Import the real Composio SDK
 try:
     from composio import Composio
@@ -60,6 +62,79 @@ class GoogleDocsEnhancer:
                 
         except Exception as e:
             print(f"❌ Connection initiation error: {e}")
+            import traceback
+            traceback.print_exc()
+            return {"success": False, "error": str(e)}
+
+    def read_google_doc(self, document_id):
+        """Read a specific Google Doc by ID using Composio"""
+        try:
+            if not self.is_connected or not self.connection_id:
+                return {"success": False, "error": "Not connected to Google Drive"}
+            
+            print(f"📄 Reading Google Doc: {document_id}")
+            
+            # Get the Google Docs tools using Composio SDK
+            tools = composio_client.tools.get(
+                user_id=self.user_id, 
+                tools=["GOOGLEDOCS_GET_DOCUMENT_BY_ID"]
+            )
+            
+            print(f"📊 Tools returned: {len(tools) if tools else 0}")
+            
+            # Use the Composio provider to handle the tool calls
+            try:
+                result = composio_client.tools.execute(
+                    "GOOGLEDOCS_GET_DOCUMENT_BY_ID",
+                    user_id=self.user_id,
+                    arguments={"id": "1yUJU8veN_Ck-QXlNacp190Fg4vAxrC5t3xhQGBvPP80"}
+                )
+                print(result)
+                
+                print(f"✅ Google Doc read successfully")
+                
+                # Extract document content from the result
+                doc_content = "Document content could not be parsed"
+                doc_title = "Unknown Document"
+                
+                if result and "data" in result and "response_data" in result["data"]:
+                    response_data = result["data"]["response_data"]
+                    doc_title = response_data.get("title", "Unknown Document")
+                    
+                    # Extract text content from the document body
+                    body = response_data.get("body", {})
+                    content = body.get("content", [])
+                    
+                    text_parts = []
+                    for item in content:
+                        if "paragraph" in item:
+                            paragraph = item["paragraph"]
+                            elements = paragraph.get("elements", [])
+                            for element in elements:
+                                if "textRun" in element:
+                                    text_run = element["textRun"]
+                                    text_parts.append(text_run.get("content", ""))
+                    
+                    doc_content = "".join(text_parts).strip()
+                    print(f"📄 Document title: {doc_title}")
+                    print(f"📄 Document content: {doc_content}")
+                
+                return {
+                    "success": True,
+                    "document": {
+                        "id": document_id,
+                        "title": doc_title,
+                        "content": doc_content,
+                        "webViewLink": f"https://docs.google.com/document/d/{document_id}/edit"
+                    }
+                }
+                
+            except Exception as tool_error:
+                print(f"❌ Tool execution error: {tool_error}")
+                return {"success": False, "error": f"Failed to read document: {str(tool_error)}"}
+                
+        except Exception as e:
+            print(f"❌ Error reading Google Doc: {e}")
             import traceback
             traceback.print_exc()
             return {"success": False, "error": str(e)}
@@ -123,6 +198,18 @@ def verify_connection():
             
     except Exception as e:
         print(f"Verification error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/read-doc/<document_id>', methods=['GET'])
+def read_google_doc(document_id):
+    """Read a specific Google Doc by ID"""
+    try:
+        if not enhancer.is_connected:
+            return jsonify({"success": False, "error": "Not connected to Google Drive"}), 401
+        
+        result = enhancer.read_google_doc(document_id)
+        return jsonify(result)
+    except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/status')

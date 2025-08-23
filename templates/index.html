@@ -164,6 +164,94 @@
             white-space: pre-wrap;
             color: #333;
         }
+
+        .documents-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .document-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .document-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .document-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .document-meta {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .document-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .document-link:hover {
+            text-decoration: underline;
+        }
+
+        .no-docs {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .document-content {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .document-header h3 {
+            color: #667eea;
+            margin: 0;
+        }
+
+        .document-body h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .document-text {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #333;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -184,7 +272,7 @@
         </button>
 
         <button id="listDocsBtn" class="btn secondary" disabled>
-            📋 List My Google Docs
+            📄 Read Test Document
         </button>
 
         <button id="checkStatusBtn" class="btn secondary" style="margin-top: 10px;">
@@ -192,7 +280,7 @@
         </button>
 
         <div id="preview" class="preview">
-            <h4>Preview of Enhanced Content:</h4>
+            <h4 id="previewTitle">Preview of Enhanced Content:</h4>
             <div id="previewContent" class="preview-content"></div>
         </div>
 
@@ -360,16 +448,21 @@
             }
 
             showPreview(original, enhanced) {
+                // Reset the preview title
+                document.getElementById('previewTitle').textContent = 'Preview of Enhanced Content:';
                 this.previewContent.textContent = enhanced;
                 this.preview.style.display = 'block';
             }
 
             async listDocuments() {
                 try {
-                    this.showLoading('Fetching your Google Docs...');
+                    this.showLoading('Reading your test document...');
                     this.listDocsBtn.disabled = true;
 
-                    const response = await fetch('/api/list-docs', {
+                    // Extract document ID from the URL you provided
+                    const documentId = '1yUJU8veN_Ck-QXlNacp190Fg4vAxrC5t3xhQGBvPP80';
+                    
+                    const response = await fetch(`/api/read-doc/${documentId}`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
@@ -379,36 +472,37 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        this.updateStatus('connected', `📋 Found ${result.count} Google Docs!`);
-                        this.showDocumentsList(result.documents);
+                        this.updateStatus('connected', `📄 Successfully read: ${result.document.title}`);
+                        this.showDocumentContent(result.document);
                     } else {
-                        throw new Error(result.error || 'Failed to list documents');
+                        throw new Error(result.error || 'Failed to read document');
                     }
                 } catch (error) {
-                    console.error('List documents error:', error);
-                    this.updateStatus('disconnected', `❌ Failed to list documents: ${error.message}`);
+                    console.error('Read document error:', error);
+                    this.updateStatus('disconnected', `❌ Failed to read document: ${error.message}`);
                 } finally {
                     this.listDocsBtn.disabled = false;
                 }
             }
 
-            showDocumentsList(documents) {
-                let content = '📋 Your Google Docs:\n\n';
+            showDocumentContent(doc) {
+                // Update the preview title
+                document.getElementById('previewTitle').textContent = `Document: ${doc.title}`;
                 
-                if (documents.length === 0) {
-                    content += 'No documents found.';
-                } else {
-                    documents.forEach((doc, index) => {
-                        content += `${index + 1}. ${doc.title}\n`;
-                        content += `   ID: ${doc.id}\n`;
-                        if (doc.modified) {
-                            content += `   Modified: ${new Date(doc.modified).toLocaleDateString()}\n`;
-                        }
-                        content += '\n';
-                    });
-                }
+                let html = `
+                    <div class="document-content">
+                        <div class="document-header">
+                            <h3>${doc.title}</h3>
+                            <a href="${doc.webViewLink}" target="_blank" class="document-link">📄 Open in Google Docs</a>
+                        </div>
+                        <div class="document-body">
+                            <h4>Content:</h4>
+                            <pre class="document-text">${doc.content || 'No content found'}</pre>
+                        </div>
+                    </div>
+                `;
                 
-                this.previewContent.textContent = content;
+                this.previewContent.innerHTML = html;
                 this.preview.style.display = 'block';
             }
 
