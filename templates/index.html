@@ -187,6 +187,10 @@
             📋 List My Google Docs
         </button>
 
+        <button id="checkStatusBtn" class="btn secondary" style="margin-top: 10px;">
+            🔄 Check Connection Status
+        </button>
+
         <div id="preview" class="preview">
             <h4>Preview of Enhanced Content:</h4>
             <div id="previewContent" class="preview-content"></div>
@@ -219,6 +223,7 @@
                 this.connectBtn = document.getElementById('connectBtn');
                 this.enhanceBtn = document.getElementById('enhanceBtn');
                 this.listDocsBtn = document.getElementById('listDocsBtn');
+                this.checkStatusBtn = document.getElementById('checkStatusBtn');
                 this.status = document.getElementById('status');
                 this.statusText = document.getElementById('statusText');
                 this.preview = document.getElementById('preview');
@@ -227,6 +232,7 @@
                 this.connectBtn.addEventListener('click', () => this.connectGoogleDocs());
                 this.enhanceBtn.addEventListener('click', () => this.enhanceDocument());
                 this.listDocsBtn.addEventListener('click', () => this.listDocuments());
+                this.checkStatusBtn.addEventListener('click', () => this.checkConnectionStatus());
 
                 this.updateStatus('disconnected', 'Ready to connect to Google Docs');
             }
@@ -288,6 +294,7 @@
                         });
 
                         const result = await response.json();
+                        console.log('Poll result:', result); // Debug log
                         
                         if (result.success) {
                             this.isConnected = true;
@@ -296,6 +303,9 @@
                             this.enhanceBtn.disabled = false;
                             this.listDocsBtn.disabled = false;
                             return;
+                        } else {
+                            // Log the error for debugging
+                            console.log('Connection not ready yet:', result.error || 'Unknown error');
                         }
                         
                         attempts++;
@@ -307,6 +317,7 @@
                             this.connectBtn.disabled = false;
                         }
                     } catch (error) {
+                        console.error('Poll error:', error);
                         attempts++;
                         if (attempts < maxAttempts) {
                             setTimeout(poll, 1000);
@@ -399,6 +410,36 @@
                 
                 this.previewContent.textContent = content;
                 this.preview.style.display = 'block';
+            }
+
+            async checkConnectionStatus() {
+                try {
+                    this.showLoading('Checking connection status...');
+                    
+                    const response = await fetch('/api/status', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    const result = await response.json();
+                    console.log('Status check result:', result);
+                    
+                    if (result.connected) {
+                        this.isConnected = true;
+                        this.updateStatus('connected', '✅ Connected to Google Docs!');
+                        this.connectBtn.textContent = 'Connected';
+                        this.enhanceBtn.disabled = false;
+                        this.listDocsBtn.disabled = false;
+                    } else {
+                        this.updateStatus('disconnected', '❌ Not connected to Google Docs');
+                        this.connectBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                    this.updateStatus('disconnected', `❌ Status check failed: ${error.message}`);
+                }
             }
         }
 
