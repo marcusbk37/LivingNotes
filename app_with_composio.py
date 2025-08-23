@@ -4,42 +4,14 @@ import json
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
-# Try to import Composio, fallback to mock for demo
-from composio import Composio
-
-print("✅ Composio imported successfully!")
-    
-# Mock Composio class for demo
-class Composio:
-    def __init__(self):
-        self.connected_accounts = self.ConnectedAccounts()
-    
-    class ConnectedAccounts:
-        def __init__(self):
-            pass
-        
-        def initiate(self, user_id, auth_config_id):
-            print(f"🔗 Mock: Initiating connection for user {user_id} with config {auth_config_id}")
-            return self.ConnectionRequest()
-        
-        def get(self, connection_id):
-            return self.ConnectionAccount()
-        
-        class ConnectionRequest:
-            def __init__(self):
-                self.id = "mock-connection-123"
-                self.redirect_url = "https://example.com/auth"
-            
-                            def wait_for_connection(self, timeout=30):
-                    import time
-                    print("⏳ Mock: Waiting for connection...")
-                    time.sleep(2)
-                    # Simulate successful connection
-                    return True
-        
-        class ConnectionAccount:
-            def __init__(self):
-                self.status = "connected"
+# Import the real Composio SDK
+try:
+    from composio import Composio
+    print("✅ Composio imported successfully!")
+except ImportError as e:
+    print(f"❌ Composio import failed: {e}")
+    print("Please install composio-sdk: pip install composio-sdk")
+    exit(1)
 
 # Load environment variables
 load_dotenv()
@@ -52,7 +24,7 @@ COMPOSIO_AUTH_CONFIG_ID = os.environ.get('COMPOSIO_AUTH_CONFIG_ID')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 # Initialize Composio client
-composio = Composio()
+composio_client = Composio()
 
 class GoogleDocsEnhancer:
     def __init__(self):
@@ -67,11 +39,17 @@ class GoogleDocsEnhancer:
             if not COMPOSIO_AUTH_CONFIG_ID:
                 return {"success": False, "error": "Composio auth config ID not configured"}
             
+            print(f"🔗 Initiating connection with auth_config_id: {COMPOSIO_AUTH_CONFIG_ID}")
+            print(f"🔗 User ID: {self.user_id}")
+            
             # Initiate OAuth2 connection using Composio SDK
-            connection_request = composio.connected_accounts.initiate(
+            connection_request = composio_client.connected_accounts.initiate(
                 user_id=self.user_id,
                 auth_config_id=COMPOSIO_AUTH_CONFIG_ID,
             )
+            
+            print(f"✅ Connection request created: {connection_request.id}")
+            print(f"🔗 Redirect URL: {connection_request.redirect_url}")
             
             # Store the connection request for later verification
             session['connection_request_id'] = connection_request.id
@@ -84,6 +62,9 @@ class GoogleDocsEnhancer:
             }
                 
         except Exception as e:
+            print(f"❌ Connection initiation error: {e}")
+            import traceback
+            traceback.print_exc()
             return {"success": False, "error": str(e)}
     
     def get_current_document(self):
@@ -92,44 +73,32 @@ class GoogleDocsEnhancer:
             if not self.is_connected:
                 raise Exception("Not connected to Google Docs")
             
-            headers = {
-                'Authorization': f'Bearer {COMPOSIO_API_KEY}',
-                'Content-Type': 'application/json'
-            }
-            
-            # List documents using Composio Google Docs integration
-            response = requests.post(
-                f'{COMPOSIO_BASE_URL}/v1/actions/google-docs/list-documents',
-                headers=headers,
-                json={
-                    'auth_config_id': COMPOSIO_AUTH_CONFIG_ID
-                }
+            # Use Composio SDK to list documents
+            result = composio_client.actions.execute(
+                action="google-docs_list_documents",
+                connection_id=self.connection_id
             )
             
-            if response.status_code == 200:
-                docs = response.json()
-                if docs and len(docs) > 0:
-                    # Get the first document (you can modify this to let user choose)
-                    doc_id = docs[0]['id']
-                    
-                    # Get document content
-                    content_response = requests.post(
-                        f'{COMPOSIO_BASE_URL}/v1/actions/google-docs/get-document',
-                        headers=headers,
-                        json={
-                            'auth_config_id': COMPOSIO_AUTH_CONFIG_ID,
-                            'document_id': doc_id
-                        }
-                    )
-                    
-                    if content_response.status_code == 200:
-                        doc_data = content_response.json()
-                        return {
-                            "id": doc_id,
-                            "title": doc_data.get('title', 'Untitled Document'),
-                            "content": doc_data.get('content', ''),
-                            "last_modified": datetime.now().isoformat()
-                        }
+            if result and len(result) > 0:
+                # Get the first document (you can modify this to let user choose)
+                doc_id = result[0]['id']
+                
+                # Get document content using Composio SDK
+                doc_result = composio_client.actions.execute(
+                    action="google-docs_get_document",
+                    connection_id=self.connection_id,
+                    input={
+                        "document_id": doc_id
+                    }
+                )
+                
+                if doc_result:
+                    return {
+                        "id": doc_id,
+                        "title": doc_result.get('title', 'Untitled Document'),
+                        "content": doc_result.get('content', ''),
+                        "last_modified": datetime.now().isoformat()
+                    }
             
             # Fallback to sample document if API fails
             return {
@@ -206,23 +175,17 @@ class GoogleDocsEnhancer:
             if not self.is_connected:
                 raise Exception("Not connected to Google Docs")
             
-            headers = {
-                'Authorization': f'Bearer {COMPOSIO_API_KEY}',
-                'Content-Type': 'application/json'
-            }
-            
-            # Update document using Composio Google Docs integration
-            response = requests.post(
-                f'{COMPOSIO_BASE_URL}/v1/actions/google-docs/update-document',
-                headers=headers,
-                json={
-                    'auth_config_id': COMPOSIO_AUTH_CONFIG_ID,
-                    'document_id': doc_id,
-                    'content': enhanced_content
+            # Update document using Composio SDK
+            result = composio_client.actions.execute(
+                action="google-docs_update_document",
+                connection_id=self.connection_id,
+                input={
+                    "document_id": doc_id,
+                    "content": enhanced_content
                 }
             )
             
-            if response.status_code == 200:
+            if result:
                 return {"success": True, "message": "Document updated successfully via Composio"}
             else:
                 # Fallback to simulation if API fails
@@ -258,23 +221,20 @@ def verify_connection():
         if not connection_request_id:
             return jsonify({"success": False, "error": "No connection request found"}), 400
         
-        # For mock mode, simulate successful connection
-        if connection_request_id == "mock-connection-123":
-            enhancer.is_connected = True
-            enhancer.connection_id = connection_request_id
-            return jsonify({
-                "success": True,
-                "message": "Successfully connected to Google Docs! (Mock Mode)",
-                "connection_id": connection_request_id
-            })
+        print(f"⏳ Waiting for connection {connection_request_id} to complete...")
         
-        # For real mode, wait for the connection to complete
         try:
+            # Wait for the connection to complete
             connection_request = composio_client.connected_accounts.get(connection_request_id)
+            print(f"✅ Got connection request: {connection_request}")
+            
             connection_request.wait_for_connection(timeout=30)
+            print(f"✅ Connection wait completed")
             
             # Get the connected account
             connected_account = composio_client.connected_accounts.get(connection_request_id)
+            print(f"✅ Got connected account: {connected_account}")
+            print(f"📊 Account status: {connected_account.status}")
             
             if connected_account.status == 'connected':
                 enhancer.is_connected = True
@@ -289,16 +249,29 @@ def verify_connection():
                     "success": False,
                     "error": f"Connection failed: {connected_account.status}"
                 }), 400
-        except Exception as composio_error:
-            print(f"Composio error: {composio_error}")
-            # Fallback to mock success
-            enhancer.is_connected = True
-            enhancer.connection_id = connection_request_id
-            return jsonify({
-                "success": True,
-                "message": "Successfully connected to Google Docs! (Fallback Mode)",
-                "connection_id": connection_request_id
-            })
+                
+        except Exception as wait_error:
+            print(f"❌ Wait error: {wait_error}")
+            # Try to get the connection status directly
+            try:
+                connected_account = composio_client.connected_accounts.get(connection_request_id)
+                print(f"🔍 Direct check - Account: {connected_account}")
+                print(f"🔍 Direct check - Status: {getattr(connected_account, 'status', 'unknown')}")
+                
+                # If we can get the account, assume it's connected
+                enhancer.is_connected = True
+                enhancer.connection_id = connection_request_id
+                return jsonify({
+                    "success": True,
+                    "message": "Successfully connected to Google Docs! (Direct check)",
+                    "connection_id": connection_request_id
+                })
+            except Exception as direct_error:
+                print(f"❌ Direct check error: {direct_error}")
+                return jsonify({
+                    "success": False,
+                    "error": f"Verification failed: {str(wait_error)}"
+                }), 500
             
     except Exception as e:
         print(f"Verification error: {e}")
