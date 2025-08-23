@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Notes - Bring your notes to life</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 40%, #e8eaff 70%, #d8daff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            color: #333;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 6rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+            display: inline-block;
+        }
+
+        .logo .living {
+            color: #000000;
+        }
+
+        .logo .notes {
+            color: #8B7EC8;
+        }
+
+        .tagline-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #000000;
+            letter-spacing: -0.01em;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #8B7EC8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            padding: 12px 20px;
+        }
+
+        .cta-button:hover {
+            background: #7A6BB8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 126, 200, 0.3);
+        }
+
+        .cta-button .arrow {
+            margin-left: 8px;
+            font-size: 0.9rem;
+        }
+
+        .hero-section {
+            margin-bottom: 0;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(139, 126, 200, 0.1);
+            border-radius: 100px;
+            opacity: 0.4;
+            z-index: 1;
+        }
+
+        .cloud::before {
+            content: '';
+            position: absolute;
+            background: rgba(139, 126, 200, 0.1);
+            border-radius: 100px;
+        }
+
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: rgba(139, 126, 200, 0.1);
+            border-radius: 100px;
+        }
+
+        .cloud1 {
+            width: 150px;
+            height: 80px;
+            top: 10%;
+            left: 10%;
+            animation: float1 25s infinite linear;
+        }
+
+        .cloud1::before {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 10px;
+        }
+
+        .cloud1::after {
+            width: 120px;
+            height: 120px;
+            top: -60px;
+            right: 15px;
+        }
+
+        .cloud2 {
+            width: 120px;
+            height: 60px;
+            top: 70%;
+            left: 80%;
+            animation: float2 30s infinite linear;
+        }
+
+        .cloud2::before {
+            width: 80px;
+            height: 80px;
+            top: -40px;
+            left: 15px;
+        }
+
+        .cloud2::after {
+            width: 90px;
+            height: 90px;
+            top: -45px;
+            right: 20px;
+        }
+
+        .cloud3 {
+            width: 180px;
+            height: 100px;
+            top: 30%;
+            left: 70%;
+            animation: float3 35s infinite linear;
+        }
+
+        .cloud3::before {
+            width: 120px;
+            height: 120px;
+            top: -60px;
+            left: 20px;
+        }
+
+        .cloud3::after {
+            width: 140px;
+            height: 140px;
+            top: -70px;
+            right: 25px;
+        }
+
+        .cloud4 {
+            width: 100px;
+            height: 50px;
+            top: 60%;
+            left: 5%;
+            animation: float4 20s infinite linear;
+        }
+
+        .cloud4::before {
+            width: 60px;
+            height: 60px;
+            top: -30px;
+            left: 10px;
+        }
+
+        .cloud4::after {
+            width: 70px;
+            height: 70px;
+            top: -35px;
+            right: 15px;
+        }
+
+        @keyframes float1 {
+            0% { transform: translate(0px, 0px); }
+            25% { transform: translate(200px, -100px); }
+            50% { transform: translate(400px, 50px); }
+            75% { transform: translate(100px, 150px); }
+            100% { transform: translate(0px, 0px); }
+        }
+
+        @keyframes float2 {
+            0% { transform: translate(0px, 0px); }
+            25% { transform: translate(-150px, 80px); }
+            50% { transform: translate(-300px, -50px); }
+            75% { transform: translate(-100px, -120px); }
+            100% { transform: translate(0px, 0px); }
+        }
+
+        @keyframes float3 {
+            0% { transform: translate(0px, 0px); }
+            33% { transform: translate(-200px, 100px); }
+            66% { transform: translate(-400px, -80px); }
+            100% { transform: translate(0px, 0px); }
+        }
+
+        @keyframes float4 {
+            0% { transform: translate(0px, 0px); }
+            50% { transform: translate(300px, -200px); }
+            100% { transform: translate(0px, 0px); }
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 3rem;
+            }
+            
+            .tagline {
+                font-size: 1.2rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
+    <div class="cloud cloud4"></div>
+    
+    <div class="container">
+        <div class="hero-section">
+            <div class="logo">
+                <span class="living">Living</span> <span class="notes">Notes</span>
+            </div>
+            <div class="tagline-container">
+                <div class="tagline">Bring your notes to life_</div>
+                <a href="/auth" class="cta-button">
+                    >
+                </a>
+            </div>
+        </div>
+
+
+    </div>
+</body>
+</html>
