@@ -46,8 +46,18 @@ class GoogleDocsEnhancer:
 enhancer = GoogleDocsEnhancer()
 
 @app.route('/')
+def landing():
+    """Landing page"""
+    return render_template('landing.html')
+
+@app.route('/auth')
+def auth():
+    """Authentication page"""
+    return render_template('auth.html')
+
+@app.route('/app')
 def index():
-    """Main page"""
+    """Main application page"""
     return render_template('index.html')
 
 @app.route('/api/connect', methods=['POST'])

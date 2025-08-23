@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Notes - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 40%, #e8eaff 70%, #d8daff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(139, 126, 200, 0.1);
+            border-radius: 100px;
+            opacity: 0.4;
+            z-index: 1;
+        }
+
+        .cloud::before {
+            content: '';
+            position: absolute;
+            background: rgba(139, 126, 200, 0.1);
+            border-radius: 100px;
+        }
+
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: rgba(139, 126, 200, 0.1);
+            border-radius: 100px;
+        }
+
+        .cloud1 {
+            width: 150px;
+            height: 80px;
+            top: 10%;
+            left: 10%;
+            animation: float1 25s infinite linear;
+        }
+
+        .cloud1::before {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 10px;
+        }
+
+        .cloud1::after {
+            width: 120px;
+            height: 120px;
+            top: -60px;
+            right: 15px;
+        }
+
+        .cloud2 {
+            width: 120px;
+            height: 60px;
+            top: 70%;
+            left: 80%;
+            animation: float2 30s infinite linear;
+        }
+
+        .cloud2::before {
+            width: 80px;
+            height: 80px;
+            top: -40px;
+            left: 15px;
+        }
+
+        .cloud2::after {
+            width: 90px;
+            height: 90px;
+            top: -45px;
+            right: 20px;
+        }
+
+        @keyframes float1 {
+            0% { transform: translate(0px, 0px); }
+            25% { transform: translate(200px, -100px); }
+            50% { transform: translate(400px, 50px); }
+            75% { transform: translate(100px, 150px); }
+            100% { transform: translate(0px, 0px); }
+        }
+
+        @keyframes float2 {
+            0% { transform: translate(0px, 0px); }
+            25% { transform: translate(-150px, 80px); }
+            50% { transform: translate(-300px, -50px); }
+            75% { transform: translate(-100px, -120px); }
+            100% { transform: translate(0px, 0px); }
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(139, 126, 200, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 30px;
+            letter-spacing: -0.02em;
+        }
+
+        .logo .living {
+            color: #000000;
+        }
+
+        .logo .notes {
+            color: #8B7EC8;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            background: #f8f9ff;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .tab.active {
+            background: white;
+            color: #8B7EC8;
+            box-shadow: 0 2px 8px rgba(139, 126, 200, 0.1);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e8eaff;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #8B7EC8;
+            box-shadow: 0 0 0 3px rgba(139, 126, 200, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: #8B7EC8;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .submit-btn:hover {
+            background: #7A6BB8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 126, 200, 0.3);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #666;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e8eaff;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .google-btn {
+            width: 100%;
+            background: white;
+            color: #333;
+            border: 2px solid #e8eaff;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .google-btn:hover {
+            border-color: #8B7EC8;
+            box-shadow: 0 4px 15px rgba(139, 126, 200, 0.1);
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #8B7EC8;
+            text-decoration: none;
+            font-weight: 500;
+            z-index: 20;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #7A6BB8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Back</a>
+    
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    
+    <div class="container">
+        <div class="logo">
+            <span class="living">Living</span> <span class="notes">Notes</span>
+        </div>
+        
+        <div class="auth-tabs">
+            <button class="tab active" onclick="switchTab('login')">Login</button>
+            <button class="tab" onclick="switchTab('signup')">Sign Up</button>
+        </div>
+        
+        <form id="loginForm" class="auth-form active">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" name="password" required>
+            </div>
+            <button type="submit" class="submit-btn">Login</button>
+        </form>
+        
+        <form id="signupForm" class="auth-form">
+            <div class="form-group">
+                <label for="signupName">Full Name</label>
+                <input type="text" id="signupName" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="signupEmail">Email</label>
+                <input type="email" id="signupEmail" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="signupPassword">Password</label>
+                <input type="password" id="signupPassword" name="password" required>
+            </div>
+            <button type="submit" class="submit-btn">Sign Up</button>
+        </form>
+        
+        <div class="divider">
+            <span>or</span>
+        </div>
+        
+        <button class="google-btn" onclick="loginWithGoogle()">
+            <span>🔗</span>
+            Continue with Google
+        </button>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            // Remove active class from all tabs and forms
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            // Add active class to selected tab and form
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Form').classList.add('active');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Simulate login
+            setTimeout(() => {
+                window.location.href = '/app';
+            }, 1000);
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Simulate signup
+            setTimeout(() => {
+                window.location.href = '/app';
+            }, 1000);
+        });
+
+        function loginWithGoogle() {
+            // Simulate Google login
+            setTimeout(() => {
+                window.location.href = '/app';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
