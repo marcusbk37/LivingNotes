@@ -237,7 +237,7 @@
 
             async connectGoogleDocs() {
                 try {
-                    this.showLoading('Connecting to Google Docs...');
+                    this.showLoading('Initiating Google Docs connection...');
                     this.connectBtn.disabled = true;
 
                     const response = await fetch('/api/connect', {
@@ -250,10 +250,14 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        this.isConnected = true;
-                        this.updateStatus('connected', '✅ Connected to Google Docs!');
-                        this.connectBtn.textContent = 'Connected';
-                        this.enhanceBtn.disabled = false;
+                        // Show OAuth2 redirect URL
+                        this.updateStatus('loading', `🔗 Please visit this URL to authenticate: ${result.redirect_url}`);
+                        
+                        // Open the OAuth2 URL in a new window
+                        window.open(result.redirect_url, '_blank', 'width=600,height=600');
+                        
+                        // Poll for connection completion
+                        this.pollForConnection();
                     } else {
                         throw new Error(result.error || 'Failed to connect');
                     }
@@ -262,6 +266,51 @@
                     this.updateStatus('disconnected', `❌ Connection failed: ${error.message}`);
                     this.connectBtn.disabled = false;
                 }
+            }
+
+            async pollForConnection() {
+                const maxAttempts = 30; // 30 seconds
+                let attempts = 0;
+                
+                const poll = async () => {
+                    try {
+                        const response = await fetch('/api/verify-connection', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            this.isConnected = true;
+                            this.updateStatus('connected', '✅ Connected to Google Docs!');
+                            this.connectBtn.textContent = 'Connected';
+                            this.enhanceBtn.disabled = false;
+                            return;
+                        }
+                        
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            this.updateStatus('loading', `⏳ Waiting for authentication... (${attempts}/${maxAttempts})`);
+                            setTimeout(poll, 1000);
+                        } else {
+                            this.updateStatus('disconnected', '❌ Authentication timeout. Please try again.');
+                            this.connectBtn.disabled = false;
+                        }
+                    } catch (error) {
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            setTimeout(poll, 1000);
+                        } else {
+                            this.updateStatus('disconnected', '❌ Authentication failed. Please try again.');
+                            this.connectBtn.disabled = false;
+                        }
+                    }
+                };
+                
+                poll();
             }
 
             async enhanceDocument() {
