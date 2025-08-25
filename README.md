@@ -1,12 +1,12 @@
 # 🎭 LivingNotes - Google Docs Humor Enhancement
 
-A hackathon project that transforms boring Google Docs into comedy gold using Python, Flask, and Composio integration!
+A hackathon project that transforms boring Google Docs into comedy gold using Python, Flask, and Composio integration! Make schoolwork engaging enough to compete against Instagram and Tiktok.
 
 ## 🚀 Features
 
 - **Simple Web Interface**: Clean, modern UI with just two buttons
 - **Google Docs Integration**: Seamless connection via Composio
-- **AI-Powered Styles**: Uses OpenAI to add any style of enhancement (sarcastic humor, anime storytelling, poetry/rhyming, etc.) based on custom user prompts
+- **AI-Powered Enhancements**: Uses OpenAI to add any style of enhancement (sarcastic humor, anime storytelling, poetry/rhyming, etc.) based on custom user prompts
 - **Real-time Updates**: Directly edits your Google Docs
 - **Preserves Original Content**: Keeps your work intact while adding humor
 - **Python Backend**: Robust Flask server with API endpoints
